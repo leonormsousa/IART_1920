@@ -1,28 +1,58 @@
 #include <iostream> 
 #include <vector> 
+#include <map>
+#include <string>
 using namespace std; 
 
 const int DOWN = 1;
 const int UP = 2;
 const int LEFT = 3;
 const int RIGHT = 4;
+const string reset_color = "\033[0m";
+const string empty_color = "\33[0;30;40m";
+const string grey_color = "\33[0;97;107m";
+const vector<string> colors = {"\33[0;31;41m", "\33[0;32;42m", "\33[0;33;43m", "\33[0;34;44m", "\33[0;35;45m", "\33[0;36;46m", "\33[0;37;47m"};
 
 class Level{
     private:
         vector< vector<char> > initial_state;
         vector< vector<char> > board;
         int number;
-        vector<char> colours;
+        map<char, pair<int, string> > groups;
         int cost;
     public:
-        Level(int number, vector< vector<char> > board){
-            this->number=number;
-            this->board=board;
-            this->initial_state=board;
-            this->cost=0;
-        };
+        Level(int number, vector< vector<char> > board);
         int analise_move(char group, int direction);
         void move(char group, int direction, int limit);
+        void display();
+};
+
+Level::Level(int number, vector< vector<char> > board){
+    this->number=number;
+    this->board=board;
+    this->initial_state=board;
+    this->cost=0;
+    int color_counter=0;
+    for (int line=0; line<board.size(); line++){
+        for (int column=0; column<board[line].size(); column++){
+            if (groups.find(board[line][column]) == groups.end()){
+                if (board[line][column]=='_')
+                    groups['_'] = pair<int, string> (1, empty_color);
+                else if (board[line][column]=='0')
+                    groups['0'] = pair<int, string> (1, grey_color);
+                else{
+                    groups[board[line][column]] = pair<int, string> (1, colors[color_counter]);
+                    color_counter++;
+                }
+            }
+            else
+            {
+                pair<int, string> previous_pair=groups.at(board[line][column]);
+                groups[board[line][column]] = pair<int, string> (previous_pair.first+1, previous_pair.second);
+            }
+            
+        }
+    }
 };
 
 int Level::analise_move(char group, int direction){
@@ -194,13 +224,29 @@ void Level::move(char group, int direction, int limit){
     this->cost++;
 }
 
+void Level::display(){
+    cout << "  ";
+    for (int column=0; column<board[0].size(); column++){
+        cout << column +1 << " ";
+    }
+    cout << "\n";
+    for (int line=0; line<board.size(); line++){
+        cout << line +1 << " ";
+        for (int column=0; column<board[line].size(); column++){
+            string color=groups.at(board[line][column]).second;
+            cout << color << board[line][column] << " " << reset_color;
+        }
+        cout << '\n';
+    }
+}
+
 
 class FoldingBlocks{
     private:
         vector<Level> levels;
     public:
         FoldingBlocks();
-        void print(){ cout<<"Hello";}
+        void print(){ levels[3].display();}
 };
 
 FoldingBlocks::FoldingBlocks(){
