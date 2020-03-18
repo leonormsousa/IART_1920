@@ -23,6 +23,7 @@ class Move{
         int direction;
         char group;
     public:
+        Move(){}
         Move(char group, int direction){
             this->group=group;
             this->direction=direction;
@@ -62,6 +63,7 @@ class Level{
         int find_imax(char group);
         int find_imin(char group);
     public:
+        Level(){}
         Level(int number, vector< vector<char> > board);
         bool analise_move(Move move);
         void make_move(Move move);
@@ -293,6 +295,7 @@ bool Level::solved(){
                 return false;
         }
     }
+
     return true;
 }
 
@@ -354,10 +357,12 @@ Node::Node(Level state, Node* father, Move move, int depth){
 
 class SearchTree{
     private:
-        queue<Node> queue_nodes;
+        vector<Node> nodes;
+        queue<Node*> queue_nodes;
     public:    
         SearchTree(Node root){
-            queue_nodes.push(root);
+            nodes.push_back(root);
+            queue_nodes.push(&root);
         }
         Node uniform_cost();
         Node depth();
@@ -366,17 +371,23 @@ class SearchTree{
 };
 
 Node SearchTree::uniform_cost(){
-    Node node = queue_nodes.front();
+    cout << "ola\n";
+    Node* node = queue_nodes.front();
+    //(node->state).display();
     queue_nodes.pop();
-    if (node.state.solved())
-        return node;
-    vector<Move> moves = node.state.possible_moves();
+        cout << "ola2\n";
+    if (node->state.solved())
+        return *node;
+            cout << "ola3\n";
+    vector<Move> moves = node->state.possible_moves();
     for (int i=0; i<moves.size(); i++){
-        Level new_level=node.state;
+        Level new_level=node->state;
         new_level.make_move(moves[i]);
-        Node new_node(new_level, &node, moves[i], node.depth+1);
-        queue_nodes.push(new_node);
+        Node new_node(new_level, node, moves[i], node->depth+1);
+        nodes.push_back(new_node);
+        queue_nodes.push(&new_node);
     }
+        cout << "ola4\n";
     return uniform_cost();
 }
 
@@ -415,14 +426,21 @@ FoldingBlocks::FoldingBlocks(){
 
 vector<Move> FoldingBlocks::solve(Level level){
     Move m('0', 0);
+    level.display();
+
     Node first(level, NULL, m, 0);
+
     SearchTree st(first);
+    cout << "hey\n";
     Node final=st.uniform_cost();
     vector<Move> moves;
+    cout << "hey2\n";
+
     while(final.father!=NULL){
         moves.push_back(final.move);
         final=*(final.father);
     }
+    cout << "hey5\n";
     reverse(moves.begin(), moves.end());
     return moves;
 }
@@ -453,7 +471,8 @@ int main (int argc, char *argv[]){
     }
     int level=atoi(argv[2])-1;
     int mode=atoi(argv[1]);
+
+
     FoldingBlocks foldingBlocks;
-    foldingBlocks.print_level(4);
-    foldingBlocks.print_possible_moves(4);
+    foldingBlocks.run_level(level);
 }
