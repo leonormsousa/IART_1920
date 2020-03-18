@@ -1,4 +1,5 @@
 #include <iostream> 
+#include <limits>
 #include <vector> 
 #include <map>
 #include <string>
@@ -70,6 +71,17 @@ class Level{
         bool solved();
         void display();
         vector<Move> possible_moves();
+        bool group_exists(char group){
+            if (groups.find(group) == groups.end())
+                return false;
+            return true;
+        }
+        void display_group_colors(){
+            for (auto& x: groups) {
+                if ((x.first!='_') && (x.first!='0'))
+                    cout << "Group " << x.first << ": " << x.second.second << "  " << reset_color << "\n";
+            }
+        }
 };
 
 Level::Level(int number, vector< vector<char> > board){
@@ -406,7 +418,8 @@ class FoldingBlocks{
                 moves[i].display();
         }
         vector<Move> solve(Level level);
-        void run_level(int level);
+        void play_bot(int mode, int level);
+        void play_human(int level);
 };
 
 FoldingBlocks::FoldingBlocks(){
@@ -445,7 +458,7 @@ vector<Move> FoldingBlocks::solve(Level level){
     return moves;
 }
 
-void FoldingBlocks::run_level(int level){
+void FoldingBlocks::play_bot(int mode, int level){
     Level current_level = levels[level];
     vector<Move> moves = solve(current_level);
     current_level.display();
@@ -458,6 +471,69 @@ void FoldingBlocks::run_level(int level){
                 current_level.display();
         }
         cout << "Level Solved with success.\nFinal Cost: " << moves.size() << "\n"; 
+    }
+}
+
+void FoldingBlocks::play_human(int level){
+    Level current_level = levels[level];
+    int cost=0;
+    bool out=false;
+    while(!out){
+        //display board
+        current_level.display();
+        cout << "Number of Moves: " << cost << "\n\n";
+
+        //group input
+        current_level.display_group_colors();
+        cout << "To Quit insert Q.\nNext Move?\n" << "Group: ";
+        char group;
+        cin >> group;
+        while(1){
+            if(!cin.fail() && (current_level.group_exists(group) || (group=='Q')))
+                break;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(),'\n');
+            cout << "\nYou have entered wrong input" << endl;
+            current_level.display_group_colors();
+            cout << "To Quit insert Q.\nNext Move?\n" << "Group: ";
+            cin >> group;
+        }
+        
+        if (group=='Q')
+            break;
+
+        //direction input
+        cout << "\nDOWN: 1 \nUP: 2\nLEFT: 3\nRIGHT : 4\n";
+        cout << "Direction: ";
+        int direction;
+        cin >> direction;
+        while(1){
+            if(!cin.fail() && (direction>=1) && (direction<=4))
+                break;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(),'\n');
+            cout << "\nYou have entered wrong input" << endl;
+            cout << "DOWN: 1 \nUP: 2\nLEFT: 3\nRIGHT : 4\n";
+            cout << "Direction: ";
+            cin >> direction;
+        }
+        cout << "\n";
+
+        //analise move
+        Move move(group, direction);
+        if (!current_level.analise_move(move))
+            cout << "Move not possible.\n\n";
+        else{
+            current_level.make_move(move);
+            cost++;
+        }
+
+        if (current_level.solved()){
+            out=true;
+            cout << "Congratulations! You have solved this level!\n";
+            current_level.display();
+            cout << "Final Number of Moves: " << cost << "\n\n";
+        }
     }
 }
 
@@ -474,5 +550,8 @@ int main (int argc, char *argv[]){
 
 
     FoldingBlocks foldingBlocks;
-    foldingBlocks.run_level(level);
+    if (mode==1)
+        foldingBlocks.play_human(level);
+    else
+        foldingBlocks.play_bot(mode, level);
 }
