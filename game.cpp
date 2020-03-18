@@ -370,11 +370,11 @@ Node::Node(Level state, Node* father, Move move, int depth){
 class SearchTree{
     private:
         vector<Node> nodes;
-        queue<Node*> queue_nodes;
+        int index=-1;
     public:    
         SearchTree(Node root){
             nodes.push_back(root);
-            queue_nodes.push(&root);
+            index=0;
         }
         Node uniform_cost();
         Node depth();
@@ -384,21 +384,21 @@ class SearchTree{
 
 Node SearchTree::uniform_cost(){
     cout << "ola\n";
-    Node* node = queue_nodes.front();
+    Node node = nodes[index];
+
     //(node->state).display();
-    queue_nodes.pop();
         cout << "ola2\n";
-    if (node->state.solved())
-        return *node;
+    if (node.state.solved())
+        return node;
             cout << "ola3\n";
-    vector<Move> moves = node->state.possible_moves();
+    vector<Move> moves = node.state.possible_moves();
     for (int i=0; i<moves.size(); i++){
-        Level new_level=node->state;
+        Level new_level=node.state;
         new_level.make_move(moves[i]);
-        Node new_node(new_level, node, moves[i], node->depth+1);
+        Node new_node(new_level, &nodes[index], moves[i], node.depth+1);
         nodes.push_back(new_node);
-        queue_nodes.push(&new_node);
     }
+    index++;
         cout << "ola4\n";
     return uniform_cost();
 }
@@ -538,13 +538,16 @@ void FoldingBlocks::play_human(int level){
 }
 
 int main (int argc, char *argv[]){
-    cout << argc << '\n';
-    cout << argv[0] << "  " << argv[1] << "  " << argv[2] << "\n";
-    if ((argc!=3) || (atoi(argv[1])<=0) || (atoi(argv[1])>3) || (atoi(argv[2])<=0) || (atoi(argv[2])>7)){
-        cout << "Usage: ./game <option> <level>\n" << "where option must be: 1(human player), 2(uniform-cost solver), 3(depth-first solver) ...\n"
-        << "where level must be: an integer between 1 and 7\n\n";
+    if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 3) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 7))
+    {
+        cout << "Usage: ./game <option> <level>\n"
+             << "where option must be: 1(human player), 2(uniform-cost solver), 3(depth-first solver) ...\n"
+             << "where level must be: an integer between 1 and 7\n\n";
         return -1;
     }
+    cout << argc << '\n';
+    cout << argv[0] << "  " << argv[1] << "  " << argv[2] << "\n";
+    
     int level=atoi(argv[2])-1;
     int mode=atoi(argv[1]);
 
