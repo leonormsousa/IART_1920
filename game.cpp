@@ -2,6 +2,8 @@
 #include <vector> 
 #include <map>
 #include <string>
+#include <queue>
+#include <algorithm>
 using namespace std; 
 
 const int DOWN = 1;
@@ -21,10 +23,28 @@ class Move{
         int direction;
         char group;
     public:
+        Move(char group, int direction){
+            this->group=group;
+            this->direction=direction;
+        }
         char getGroup(){return group;}
         int getDirection(){return direction;}
         void display(){
-            cout << "Direction: " << direction << " | Group: " << group << "\n";
+            cout << "Group: " << group << " | Direction: " ;
+            switch(direction){
+                case UP:
+                    cout << "Up\n";
+                    break;
+                case DOWN:
+                    cout << "Down\n";
+                    break;
+                case LEFT:
+                    cout << "Left\n";
+                    break;
+                case RIGHT:
+                    cout << "Right\n";
+                    break;
+            }
         }
 };
 
@@ -34,7 +54,7 @@ class Move{
 class Level{
     private:
         int number;
-        vector< vector<char> > board;
+        vector<vector<char> > board;
         map<char, pair<int, string> > groups;
         int cost;
         int find_jmax(char group);
@@ -47,6 +67,7 @@ class Level{
         void make_move(Move move);
         bool solved();
         void display();
+        vector<Move> possible_moves();
 };
 
 Level::Level(int number, vector< vector<char> > board){
@@ -291,6 +312,27 @@ void Level::display(){
     }
 }
 
+vector<Move> Level::possible_moves(){
+    vector<Move> moves;
+    for (auto& x: groups) {
+        if ((x.first != '0') && (x.first != '_')){
+            Move move_up(x.first, UP);
+            if (analise_move(move_up))
+                moves.push_back(move_up);
+            Move move_down(x.first, DOWN);
+            if (analise_move(move_down))
+                moves.push_back(move_down);
+            Move move_left(x.first, LEFT);
+            if (analise_move(move_left))
+                moves.push_back(move_left);
+            Move move_right(x.first, RIGHT);
+            if (analise_move(move_right))
+                moves.push_back(move_right);
+        }
+    }
+    return moves;
+}
+
 //--------------------------------------------------------------------------------------------------------//
 //--------------------------------------------  NODE -----------------------------------------------------//
 //--------------------------------------------------------------------------------------------------------//
@@ -300,13 +342,43 @@ class Node{
         Node* father;
         Move move;
         int depth;
-        int cost;
+        Node(Level state, Node* father, Move move, int depth);
 };
 
+Node::Node(Level state, Node* father, Move move, int depth){
+    this->state=state;
+    this->father=father;
+    this->move=move;
+    this->depth=depth;
+}
+
 class SearchTree{
-    public:
-        vector<Node> nodes;
+    private:
+        queue<Node> queue_nodes;
+    public:    
+        SearchTree(Node root){
+            queue_nodes.push(root);
+        }
+        Node uniform_cost();
+        Node depth();
+        Node depth_iterative();
+        Node greedy();
 };
+
+Node SearchTree::uniform_cost(){
+    Node node = queue_nodes.front();
+    queue_nodes.pop();
+    if (node.state.solved())
+        return node;
+    vector<Move> moves = node.state.possible_moves();
+    for (int i=0; i<moves.size(); i++){
+        Level new_level=node.state;
+        new_level.make_move(moves[i]);
+        Node new_node(new_level, &node, moves[i], node.depth+1);
+        queue_nodes.push(new_node);
+    }
+    return uniform_cost();
+}
 
 //--------------------------------------------------------------------------------------------------------//
 //----------------------------------------  FoldingBlocks ------------------------------------------------//
@@ -316,9 +388,14 @@ class FoldingBlocks{
         vector<Level> levels;
     public:
         FoldingBlocks();
-        void print(int level){ levels[level].display();}
-        void run_level(int level);
+        void print_level(int level){ levels[level].display();}
+        void print_possible_moves(int level){
+            vector<Move> moves=levels[level].possible_moves();
+            for (int i=0; i<moves.size(); i++)
+                moves[i].display();
+        }
         vector<Move> solve(Level level);
+        void run_level(int level);
 };
 
 FoldingBlocks::FoldingBlocks(){
@@ -337,7 +414,17 @@ FoldingBlocks::FoldingBlocks(){
 }
 
 vector<Move> FoldingBlocks::solve(Level level){
-    /////////////////////////////THIS>////////////////////////777777777777////////////7777777777777777777777777/////////////////////////////////////777
+    Move m('0', 0);
+    Node first(level, NULL, m, 0);
+    SearchTree st(first);
+    Node final=st.uniform_cost();
+    vector<Move> moves;
+    while(final.father!=NULL){
+        moves.push_back(final.move);
+        final=*(final.father);
+    }
+    reverse(moves.begin(), moves.end());
+    return moves;
 }
 
 void FoldingBlocks::run_level(int level){
@@ -356,7 +443,17 @@ void FoldingBlocks::run_level(int level){
     }
 }
 
-int main(){
+int main (int argc, char *argv[]){
+    cout << argc << '\n';
+    cout << argv[0] << "  " << argv[1] << "  " << argv[2] << "\n";
+    if ((argc!=3) || (atoi(argv[1])<=0) || (atoi(argv[1])>3) || (atoi(argv[2])<=0) || (atoi(argv[2])>7)){
+        cout << "Usage: ./game <option> <level>\n" << "where option must be: 1(human player), 2(uniform-cost solver), 3(depth-first solver) ...\n"
+        << "where level must be: an integer between 1 and 7\n\n";
+        return -1;
+    }
+    int level=atoi(argv[2])-1;
+    int mode=atoi(argv[1]);
     FoldingBlocks foldingBlocks;
-    foldingBlocks.print(1);
+    foldingBlocks.print_level(4);
+    foldingBlocks.print_possible_moves(4);
 }
