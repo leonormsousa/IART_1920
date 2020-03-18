@@ -383,14 +383,9 @@ class SearchTree{
 };
 
 Node SearchTree::uniform_cost(){
-    cout << "ola\n";
     Node node = nodes[index];
-
-    //(node->state).display();
-        cout << "ola2\n";
     if (node.state.solved())
         return node;
-            cout << "ola3\n";
     vector<Move> moves = node.state.possible_moves();
     for (int i=0; i<moves.size(); i++){
         Level new_level=node.state;
@@ -399,7 +394,6 @@ Node SearchTree::uniform_cost(){
         nodes.push_back(new_node);
     }
     index++;
-        cout << "ola4\n";
     return uniform_cost();
 }
 
@@ -439,21 +433,14 @@ FoldingBlocks::FoldingBlocks(){
 
 vector<Move> FoldingBlocks::solve(Level level){
     Move m('0', 0);
-    level.display();
-
     Node first(level, NULL, m, 0);
-
     SearchTree st(first);
-    cout << "hey\n";
     Node final=st.uniform_cost();
     vector<Move> moves;
-    cout << "hey2\n";
-
     while(final.father!=NULL){
         moves.push_back(final.move);
         final=*(final.father);
     }
-    cout << "hey5\n";
     reverse(moves.begin(), moves.end());
     return moves;
 }
@@ -462,6 +449,7 @@ void FoldingBlocks::play_bot(int mode, int level){
     Level current_level = levels[level];
     vector<Move> moves = solve(current_level);
     current_level.display();
+    cout << "\n";
     if (moves.empty())
         cout << "No solution is possible for level " << level << '\n';
     else{
@@ -469,6 +457,7 @@ void FoldingBlocks::play_bot(int mode, int level){
                 current_level.make_move(moves[i]);
                 moves[i].display();
                 current_level.display();
+                cout << "\n";
         }
         cout << "Level Solved with success.\nFinal Cost: " << moves.size() << "\n"; 
     }
@@ -545,8 +534,6 @@ int main (int argc, char *argv[]){
              << "where level must be: an integer between 1 and 7\n\n";
         return -1;
     }
-    cout << argc << '\n';
-    cout << argv[0] << "  " << argv[1] << "  " << argv[2] << "\n";
     
     int level=atoi(argv[2])-1;
     int mode=atoi(argv[1]);
