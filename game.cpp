@@ -3,7 +3,7 @@
 #include <vector> 
 #include <map>
 #include <string>
-#include <queue>
+#include <list>
 #include <algorithm>
 using namespace std; 
 
@@ -369,32 +369,42 @@ Node::Node(Level state, Node* father, Move move, int depth){
 
 class SearchTree{
     private:
-        vector<Node> nodes;
+        list<Node> nodes;
         int index=-1;
     public:    
         SearchTree(Node root){
             nodes.push_back(root);
             index=0;
         }
+        Node* getNodeAt(int index);
         Node uniform_cost();
         Node depth();
         Node depth_iterative();
         Node greedy();
 };
 
+Node* SearchTree::getNodeAt(int index){
+    auto l_front = nodes.begin();
+    advance(l_front, index);
+    return &(*l_front);
+}
+
 Node SearchTree::uniform_cost(){
-    Node node = nodes[index];
-    if (node.state.solved())
-        return node;
-    vector<Move> moves = node.state.possible_moves();
+    Node* node = getNodeAt(index);
+    if (node->state.solved())
+        return *node;
+    vector<Move> moves = node->state.possible_moves();
     for (int i=0; i<moves.size(); i++){
-        Level new_level=node.state;
+        Level new_level=node->state;
         new_level.make_move(moves[i]);
-        Node new_node(new_level, &nodes[index], moves[i], node.depth+1);
+        Node new_node(new_level, node, moves[i], node->depth+1);
         nodes.push_back(new_node);
     }
     index++;
-    return uniform_cost();
+    if (index<nodes.size())
+        return uniform_cost();
+    else
+        return nodes.front();
 }
 
 //--------------------------------------------------------------------------------------------------------//
