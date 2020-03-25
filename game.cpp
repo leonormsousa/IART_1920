@@ -371,16 +371,17 @@ Node::Node(Level state, Node* father, Move move, int depth){
 class SearchTree{
     private:
         list<Node> nodes;
-        int index=-1;
+        int index;
     public:    
         SearchTree(Node root){
             nodes.push_back(root);
             index=0;
         }
         Node* getNodeAt(int index);
+        void resetIndex(){ index=0; };
         Node breadth_first();
-        Node depth_first();
-        Node depth_iterative();
+        Node depth_first(int max_depth);
+        Node iterative_deepening(int max_depth);
         Node greedy();
 };
 
@@ -410,12 +411,14 @@ Node SearchTree::breadth_first(){
         return nodes.front();
 }
 
-Node SearchTree::depth_first(){
+Node SearchTree::depth_first(int max_depth){
     Node* node = getNodeAt(index);
     if (node->state.solved()){
         cout << "Nodes visited: " << index << "\n";
         return *node;
     }
+    if (node->depth >= max_depth)
+        return nodes.front();
     vector<Move> moves = node->state.possible_moves();
     for (int i=0; i<moves.size(); i++){
         Level new_level=node->state;
@@ -424,9 +427,20 @@ Node SearchTree::depth_first(){
         nodes.push_back(new_node);
             index++;
         if (index<nodes.size())
-            return depth_first();
+            return depth_first(max_depth);
         else
             return nodes.front();
+    }
+    return nodes.front();
+}
+
+Node SearchTree::iterative_deepening(int max_depth){
+    Node final_node;
+    for (int i=0; i<=max_depth; i++){
+        resetIndex();
+        final_node = depth_first(i);
+        if (final_node.father != NULL)
+            return final_node;
     }
     return nodes.front();
 }
@@ -476,7 +490,10 @@ vector<Move> FoldingBlocks::solve(int mode, Level level){
             final=st.breadth_first();
             break;
         case 3:
-            final=st.depth_first();
+            final=st.depth_first(100);
+            break;
+        case 4:
+            final=st.iterative_deepening(100);
             break;
     }
     
@@ -571,10 +588,10 @@ void FoldingBlocks::play_human(int level){
 }
 
 int main (int argc, char *argv[]){
-    if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 3) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 7))
+    if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 4) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 7))
     {
         cout << "Usage: ./game <option> <level>\n"
-             << "where option must be: 1(human player), 2(uniform-cost solver), 3(depth-first solver) ...\n"
+             << "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening)...\n"
              << "where level must be: an integer between 1 and 7\n\n";
         return -1;
     }
