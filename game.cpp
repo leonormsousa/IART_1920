@@ -358,6 +358,7 @@ class Node{
         Move move;
         int depth;
         Node(Level state, Node* father, Move move, int depth);
+        Node(){};
 };
 
 Node::Node(Level state, Node* father, Move move, int depth){
@@ -377,8 +378,8 @@ class SearchTree{
             index=0;
         }
         Node* getNodeAt(int index);
-        Node uniform_cost();
-        Node depth();
+        Node breadth_first();
+        Node depth_first();
         Node depth_iterative();
         Node greedy();
 };
@@ -389,10 +390,12 @@ Node* SearchTree::getNodeAt(int index){
     return &(*l_front);
 }
 
-Node SearchTree::uniform_cost(){
+Node SearchTree::breadth_first(){
     Node* node = getNodeAt(index);
-    if (node->state.solved())
+    if (node->state.solved()){
+        cout << "Nodes visited: " << index << "\n";
         return *node;
+    }
     vector<Move> moves = node->state.possible_moves();
     for (int i=0; i<moves.size(); i++){
         Level new_level=node->state;
@@ -402,9 +405,30 @@ Node SearchTree::uniform_cost(){
     }
     index++;
     if (index<nodes.size())
-        return uniform_cost();
+        return breadth_first();
     else
         return nodes.front();
+}
+
+Node SearchTree::depth_first(){
+    Node* node = getNodeAt(index);
+    if (node->state.solved()){
+        cout << "Nodes visited: " << index << "\n";
+        return *node;
+    }
+    vector<Move> moves = node->state.possible_moves();
+    for (int i=0; i<moves.size(); i++){
+        Level new_level=node->state;
+        new_level.make_move(moves[i]);
+        Node new_node(new_level, node, moves[i], node->depth+1);
+        nodes.push_back(new_node);
+            index++;
+        if (index<nodes.size())
+            return depth_first();
+        else
+            return nodes.front();
+    }
+    return nodes.front();
 }
 
 //--------------------------------------------------------------------------------------------------------//
@@ -421,7 +445,7 @@ class FoldingBlocks{
             for (int i=0; i<moves.size(); i++)
                 moves[i].display();
         }
-        vector<Move> solve(Level level);
+        vector<Move> solve(int mode, Level level);
         void play_bot(int mode, int level);
         void play_human(int level);
 };
@@ -441,11 +465,21 @@ FoldingBlocks::FoldingBlocks(){
     levels.push_back(Level(6, level6));
 }
 
-vector<Move> FoldingBlocks::solve(Level level){
+vector<Move> FoldingBlocks::solve(int mode, Level level){
     Move m('0', 0);
     Node first(level, NULL, m, 0);
     SearchTree st(first);
-    Node final=st.uniform_cost();
+    Node final;
+
+    switch(mode){
+        case 2:
+            final=st.breadth_first();
+            break;
+        case 3:
+            final=st.depth_first();
+            break;
+    }
+    
     vector<Move> moves;
     while(final.father!=NULL){
         moves.push_back(final.move);
@@ -457,7 +491,7 @@ vector<Move> FoldingBlocks::solve(Level level){
 
 void FoldingBlocks::play_bot(int mode, int level){
     Level current_level = levels[level];
-    vector<Move> moves = solve(current_level);
+    vector<Move> moves = solve(mode, current_level);
     current_level.display();
     cout << "\n";
     if (moves.empty())
