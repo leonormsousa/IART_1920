@@ -359,7 +359,7 @@ public:
 	int father_index;
 	Move move;
 	int depth;
-	int sub_index=0;
+	vector<Move> moves;
 	Node(Level state, int father_index, Move move, int depth);
 	Node() {};
 };
@@ -369,6 +369,7 @@ Node::Node(Level state, int father_index, Move move, int depth) {
 	this->father_index=father_index;
 	this->move = move;
 	this->depth = depth;
+	this->moves=state.possible_moves();
 }
 
 class SearchTree {
@@ -381,7 +382,12 @@ public:
 		index = 0;
 	}
 	Node* getNodeAt(int index);
-	void resetIndex() { index = 0; };
+	void resetIterative() {
+	    index = 0;
+	    Node temp = nodes.front();
+        temp.moves=temp.state.possible_moves();
+	    nodes.clear();
+	    nodes.push_back(temp);};
 	Node breadth_first();
 	Node depth_first(int max_depth);
 	Node iterative_deepening(int max_depth);
@@ -422,16 +428,15 @@ Node SearchTree::depth_first(int max_depth) {
 	}
 	if (node->depth >= max_depth)
 		return nodes.front();
-	vector<Move> moves = node->state.possible_moves();
-	if (moves.size()>node->sub_index){
+	if (node->moves.size()>0){
         Level new_level = node->state;
-        new_level.make_move(moves[node->sub_index]);
+        new_level.make_move(node->moves.front());
         //new_level.display();
-        Node new_node(new_level, index, moves[node->sub_index], node->depth + 1);
-        //cout<<"Moves available: "<<moves.size()<<"\nSubindex: "<<node->sub_index<<"\nIndex: "<<index<<endl;
+        Node new_node(new_level, index,node->moves.front(), node->depth + 1);
+        //cout<<"MaxDepth: "<<max_depth<<"\nMoves available: "<<node->moves.size()<<"\nDepth: "<<node->depth<<"\nIndex: "<<index<<endl;
         index=nodes.size();
         nodes.push_back(new_node);
-        node->sub_index++;
+        node->moves.erase(node->moves.begin());
         return depth_first(max_depth);}
 	else if (node->father_index!=-1){
 	    index=node->father_index;
@@ -443,7 +448,7 @@ Node SearchTree::depth_first(int max_depth) {
 Node SearchTree::iterative_deepening(int max_depth) {
 	Node final_node;
 	for (int i = 0; i <= max_depth; i++) {
-		resetIndex();
+		resetIterative();
 		final_node = depth_first(i);
 		if (final_node.father_index != -1)
 			return final_node;
@@ -491,18 +496,7 @@ Node SearchTree::greedy() {
         }
     }
     vector<Move> moves = node->state.possible_moves();
-    for (int i = 0; i < moves.size(); i++) {
-        Level new_level = node->state;
-        new_level.make_move(moves[i]);
-        Node new_node(new_level, index, moves[i], node->depth + 1);
-        nodes.push_back(new_node);
-        index++;
-        if (index < nodes.size())
-            return greedy();
-        else
-            return nodes.front();
-    }
-    return nodes.front();
+     return nodes.front();
 }
 
 //--------------------------------------------------------------------------------------------------------//
