@@ -486,7 +486,6 @@ Node SearchTree::greedy() {
             }
         }
     }
-//TODO
     vector<Move> moves = node->state.possible_moves();
     for (int i = 0; i < moves.size(); i++) {
         Level new_level = node->state;
@@ -495,12 +494,11 @@ Node SearchTree::greedy() {
         nodes.push_back(new_node);
         index++;
         if (index < nodes.size())
-            return depth_first(max_depth);
+            return greedy();
         else
             return nodes.front();
     }
     return nodes.front();
-    //TODO
 }
 
 //--------------------------------------------------------------------------------------------------------//
@@ -535,7 +533,7 @@ FoldingBlocks::FoldingBlocks() {
 	vector< vector<char> > level3 = { {'A', '0', '0', '0'}, {'_', '_', '_', '_'}, {'A', '0', '0', '0'} };
 	vector< vector<char> > level4 = { {'A', '0', '_', '_'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'_', '_', 'B', '0'} };
 	vector< vector<char> > level5 = { {'A', '0', '_', '_'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'_', '_', 'B', '0'} };
-	vector< vector<char> > level6 = { {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', 'A'}, {'0', '0', '0', 'B'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'} };
+	vector< vector<char> > level6 = { {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', 'A'}, {'B', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'} };
 	levels.push_back(Level(1, level1));
 	levels.push_back(Level(2, level2));
 	levels.push_back(Level(3, level3));
@@ -581,7 +579,7 @@ void FoldingBlocks::play_bot(int mode, int level) {
 	current_level.display();
 	cout << "\n";
 	if (moves.empty())
-		cout << "No solution is possible for level " << level << '\n';
+		cout << "No solution is possible for level " << level+1 << '\n';
 	else {
 		for (int i = 0; i < moves.size(); i++) {
 			current_level.make_move(moves[i]);
