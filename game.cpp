@@ -495,9 +495,7 @@ Node SearchTree::depth_first(int max_depth) {
 	if (node->moves.size()>0){
         Level new_level = node->state;
         new_level.make_move(node->moves.front());
-        //new_level.display();
         Node new_node(new_level, index,node->moves.front(), node->depth + 1);
-        //cout<<"MaxDepth: "<<max_depth<<"\nMoves available: "<<node->moves.size()<<"\nDepth: "<<node->depth<<"\nIndex: "<<index<<endl;
         index=nodes.size();
         nodes.push_back(new_node);
         node->moves.erase(node->moves.begin());
@@ -542,8 +540,6 @@ Node SearchTree::greedy() {
     for (int j = 0; j < board.size(); j++) {//find smallest empty group
         for (int k = 0; k < board[j].size(); k++) {
             if (board[j][k] == '0' && visited_board[j][k] == '0') {
-                /*		partial_grp++;
-                        visited_board[j][k] = '_';*/
                 partial_grp = 0;
                 grouping(board, visited_board, j, k, partial_grp);
                 if (partial_grp < grp_size) {
@@ -588,12 +584,10 @@ Node SearchTree::greedy_aux() {
     if (node->moves.size()>0){
         Level new_level = node->state;
         new_level.make_move(node->moves.front());
-        //new_level.display();
         Node new_node(new_level, index,node->moves.front(), node->depth + 1);
         index=nodes.size();
         nodes.push_back(new_node);
         node->moves.erase(node->moves.begin());
-        //cout<<"\nMoves available: "<<node->moves.size()<<"\nDepth: "<<node->depth<<"\nIndex: "<<index<<endl;
         return greedy();}
     else if (node->father_index!=-1){
         index=node->father_index;
@@ -621,7 +615,6 @@ Node SearchTree::astar() {
     }
     nodes.push_back(*node);
 
-
     if (node->state.solved()) {
         cout << "Nodes visited: " << nodes.size() << "\n";
         return *node;
@@ -634,18 +627,11 @@ Node SearchTree::astar() {
         new_node.value=new_level.getValue()+new_node.depth;
         nodes_unsearched.push_back(new_node);}
 
-
     auto it = nodes_unsearched.begin();
     advance(it,index);
     nodes_unsearched.erase(it);
     return astar();
 }
-
-//--------------------------------------------------------------------------------------------------------//
-//----------------------------------------  FoldingBlocks ------------------------------------------------//
-//--------------------------------------------------------------------------------------------------------//
-
-
 
 
 //--------------------------------------------------------------------------------------------------------//
@@ -656,12 +642,6 @@ private:
 	vector<Level> levels;
 public:
 	FoldingBlocks();
-	void print_level(int level) { levels[level].display(); }
-	void print_possible_moves(int level) {
-		vector<Move> moves = levels[level].possible_moves();
-		for (int i = 0; i < moves.size(); i++)
-			moves[i].display();
-	}
 	vector<Move> solve(int mode, Level level);
 	void play_bot(int mode, int level);
 	void play_human(int level);
@@ -723,7 +703,6 @@ vector<Move> FoldingBlocks::solve(int mode, Level level) {
 
 void FoldingBlocks::play_bot(int mode, int level) {
 	Level current_level = levels[level];
-	//cout << current_level.getGroups()['0'].first;
 	vector<Move> moves = solve(mode, current_level);
 	current_level.display();
 	cout << "\n";
@@ -754,7 +733,7 @@ void FoldingBlocks::play_human(int level) {
 		cout << "To Quit insert Q.\nNext Move?\n" << "Group: ";
 		char group;
 		cin >> group;
-		while (1) {
+		while (true) {
 			if (!cin.fail() && (current_level.group_exists(group) || (group == 'Q')))
 				break;
 			cin.clear();
