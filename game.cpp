@@ -435,23 +435,33 @@ bool SearchTree::alreadyVisited(Node node){
     if (nodes.size()==0){
         return false;
     }
+    bool equal;
     int value = node.state.getValue()-node.depth;
     vector<vector<char>> board = node.state.getBoard();
     for (auto iterator:nodes){
-        if(iterator.value-iterator.depth != value)
-            return false;
-        else{
+        if(iterator.value-iterator.depth == value){
+            equal=true;
             vector<vector<char>> old_board = iterator.state.getBoard();
             for (int j = 0; j < board.size(); j++) {//find smallest empty group
-                for (int k = 0; k < board[j].size(); k++) {
-                    if (board[j][k] != old_board[j][k]) {
-                        return false;
+                if (equal){
+                    for (int k = 0; k < board[j].size(); k++) {
+                        if (board[j][k] != old_board[j][k]) {
+                           equal=false;
+                           continue;
+                        }
                     }
                 }
             }
+            if (equal){
+                if (iterator.depth>node.depth){
+                    iterator.value+=node.depth-iterator.depth;
+                    iterator.depth=node.depth;
+                }
+                return true;
+            }
         }
     }
-    return true;
+    return false;
 }
 
 Node SearchTree::breadth_first() {
