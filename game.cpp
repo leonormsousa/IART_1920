@@ -392,6 +392,7 @@ public:
 	Node depth_first(int max_depth);
 	Node iterative_deepening(int max_depth);
     Node greedy();
+    Node greedy_aux();
 };
 
 Node* SearchTree::getNodeAt(int index) {
@@ -467,36 +468,75 @@ void grouping(vector<vector<char> > &board, vector<vector<char> > &visited_board
     }
 }
 Node SearchTree::greedy() {
-    Node* node = getNodeAt(index);
-    if (node->state.solved()) {
-        cout << "Nodes visited: " << index << "\n";
-        return *node;
-    }
+    Node *node = getNodeAt(index);
 
     int grp_size = INT16_MAX;
     int partial_grp = 0;
-    int k_temp,j_temp;
+    int k_temp, j_temp;
 
     vector<vector<char> > board = node->state.getBoard();
     vector<vector<char> > visited_board = node->state.getBoard();
-    for (int j = 0; j < board.size(); j++){
-        for (int k= 0; k < board[j].size(); k++) {
+    for (int j = 0; j < board.size(); j++) {//find smallest empty group
+        for (int k = 0; k < board[j].size(); k++) {
             if (board[j][k] == '0' && visited_board[j][k] == '0') {
                 /*		partial_grp++;
                         visited_board[j][k] = '_';*/
+                partial_grp = 0;
                 grouping(board, visited_board, j, k, partial_grp);
-                cout << "P1:" << partial_grp<< "\n";
                 if (partial_grp < grp_size) {
                     grp_size = partial_grp;
-                    partial_grp = 0;
-                    k_temp=k;
-                    j_temp=j;
+                    k_temp = k;
+                    j_temp = j;
                 }
             }
         }
     }
-    vector<Move> moves = node->state.possible_moves();
-     return nodes.front();
+    vector<Move> altered;
+    vector<Move> partially_altered;
+    vector<Move> unaltered;
+    for (int i=0;i<node->moves.size();i++){
+        Level new_level = node->state;
+        new_level.make_move(node->moves[i]);
+        if (board[j_temp][k_temp] == '0') {
+            visited_board = new_level.getBoard();
+            partial_grp = 0;
+            grouping(board, visited_board, j_temp, k_temp, partial_grp);
+            if (partial_grp < grp_size-1)//if size changed more than 1 (because if its the big group it always changes 1)
+                altered.push_back(node->moves[i]);
+            else if (partial_grp + 1 == grp_size)
+                partially_altered.push_back(node->moves[i]);
+            else unaltered.push_back(node->moves[i]);
+        }
+        else altered.push_back(node->moves[i]);
+    }
+    node->moves.clear();
+    altered.insert(altered.end(), partially_altered.begin(), partially_altered.end());
+    altered.insert(altered.end(), unaltered.begin(), unaltered.end());
+    node->moves=altered;
+    return greedy_aux();
+}
+
+Node SearchTree::greedy_aux() {
+    Node *node = getNodeAt(index);
+    if (node->state.solved()) {
+        cout << "Nodes visited: " << index << "\n";
+        return *node;
+    }
+    if (node->moves.size()>0){
+        Level new_level = node->state;
+        new_level.make_move(node->moves.front());
+        //new_level.display();
+        Node new_node(new_level, index,node->moves.front(), node->depth + 1);
+        index=nodes.size();
+        nodes.push_back(new_node);
+        node->moves.erase(node->moves.begin());
+        //cout<<"\nMoves available: "<<node->moves.size()<<"\nDepth: "<<node->depth<<"\nIndex: "<<index<<endl;
+        return greedy();}
+    else if (node->father_index!=-1){
+        index=node->father_index;
+        return greedy_aux();
+    }
+    else return nodes.front();
 }
 
 //--------------------------------------------------------------------------------------------------------//
@@ -557,7 +597,7 @@ vector<Move> FoldingBlocks::solve(int mode, Level level) {
 		final = st.iterative_deepening(100);
 		break;
     case 5:
-        final=st.greedy();
+        final= st.greedy();
         break;
 	}
 
@@ -573,7 +613,7 @@ vector<Move> FoldingBlocks::solve(int mode, Level level) {
 
 void FoldingBlocks::play_bot(int mode, int level) {
 	Level current_level = levels[level];
-	cout << current_level.getGroups()['0'].first;
+	//cout << current_level.getGroups()['0'].first;
 	vector<Move> moves = solve(mode, current_level);
 	current_level.display();
 	cout << "\n";
