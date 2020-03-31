@@ -74,16 +74,16 @@ public:
 	map<char, pair<int, string> > getGroups() { return groups; }
 	vector<Move> possible_moves();
 	bool group_exists(char group) {
-		if (groups.find(group) == groups.end())
-			return false;
-		return true;
-	}
+        return !(groups.find(group) == groups.end());
+    }
 	void display_group_colors() {
 		for (auto& x : groups) {
 			if ((x.first != '_') && (x.first != '0'))
 				cout << "Group " << x.first << ": " << x.second.second << "  " << reset_color << "\n";
 		}
 	}
+
+    int getValue();
 };
 
 Level::Level(int number, vector< vector<char> > board) {
@@ -350,6 +350,17 @@ vector<Move> Level::possible_moves() {
 	return moves;
 }
 
+int Level::getValue(){
+    int value=0;
+
+    for (int line = 0; line < board.size(); line++) {
+        for (int column = 0; column < board[line].size(); column++) {
+            if  (board[line][column] == '0')
+                value++;
+        }
+    }
+    return value;
+}
 //--------------------------------------------------------------------------------------------------------//
 //--------------------------------------------  NODE -----------------------------------------------------//
 //--------------------------------------------------------------------------------------------------------//
@@ -360,6 +371,7 @@ public:
 	Move move;
 	int depth;
 	vector<Move> moves;
+	int value;
 	Node(Level state, int father_index, Move move, int depth);
 	Node() {};
 };
@@ -374,15 +386,18 @@ Node::Node(Level state, int father_index, Move move, int depth) {
 
 class SearchTree {
 private:
-	list<Node> nodes;
-	int index;
+    list<Node> nodes_unsearched;
+    list<Node> nodes;
+    int index;
 public:
 	SearchTree(Node root) {
 		nodes.push_back(root);
 		index = 0;
+
 	}
-	Node* getNodeAt(int index);
-	void resetIterative() {
+    Node* getNodeAt(int index);
+    Node *getUnsearchedNodeAt(int index);
+    void resetIterative() {
 	    index = 0;
 	    Node temp = nodes.front();
         temp.moves=temp.state.possible_moves();
@@ -393,17 +408,33 @@ public:
 	Node iterative_deepening(int max_depth);
     Node greedy();
     Node greedy_aux();
+    Node astar();
+
+
+    void startAstar();
 };
 
 Node* SearchTree::getNodeAt(int index) {
-	auto l_front = nodes.begin();
-	advance(l_front, index);
-	return &(*l_front);
+    auto l_front = nodes.begin();
+    advance(l_front, index);
+    return &(*l_front);
+}
+
+Node* SearchTree::getUnsearchedNodeAt(int index) {
+    auto l_front = nodes.begin();
+    advance(l_front, index);
+    return &(*l_front);
+}
+
+void SearchTree::startAstar(){
+    Node node = nodes.front();
+    nodes.clear();
+    nodes_unsearched.push_back(node);
 }
 
 Node SearchTree::breadth_first() {
-	Node* node = getNodeAt(index);
-	if (node->state.solved()) {
+    Node* node = getNodeAt(index);
+    if (node->state.solved()) {
 		cout << "Nodes visited: " << index << "\n";
 		return *node;
 	}
@@ -539,6 +570,36 @@ Node SearchTree::greedy_aux() {
     else return nodes.front();
 }
 
+Node SearchTree::astar() {
+    int temp_value=INT16_MAX,index=0;
+    for (int i=0;i<nodes_unsearched.size();i++){
+        if (getUnsearchedNodeAt(i)->value < temp_value){
+            temp_value=getUnsearchedNodeAt(i)->value;
+            index=i;}
+    }
+    Node* node = getUnsearchedNodeAt(index);
+    nodes.push_back(*node);
+    auto it = nodes_unsearched.begin();
+    advance(it,index);
+    nodes_unsearched.erase(it);
+
+    if (node->state.solved()) {
+        cout << "Nodes visited: " << nodes.size() << "\n";
+        return *node;
+    }
+
+    for (int i=0;i<node->moves.size();i++){
+        Level new_level = node->state;
+        new_level.make_move(node->moves[i]);
+        Node new_node(new_level, index,node->moves.front(), node->depth + 1);
+        new_node.value=new_level.getValue()+new_node.depth;
+        nodes_unsearched.push_back(new_node);}
+
+
+
+    return astar();
+}
+
 //--------------------------------------------------------------------------------------------------------//
 //----------------------------------------  FoldingBlocks ------------------------------------------------//
 //--------------------------------------------------------------------------------------------------------//
@@ -583,6 +644,7 @@ FoldingBlocks::FoldingBlocks() {
 vector<Move> FoldingBlocks::solve(int mode, Level level) {
 	Move m('0', 0);
 	Node first(level,-1, m, 0);
+    first.value=level.getValue();
 	SearchTree st(first);
 	Node final;
 
@@ -599,7 +661,12 @@ vector<Move> FoldingBlocks::solve(int mode, Level level) {
     case 5:
         final= st.greedy();
         break;
-	}
+    case 6:
+        st.startAstar();
+        final=st.astar();
+        break;
+    }
+
 
 	vector<Move> moves;
 	while (final.father_index != -1) {
@@ -694,10 +761,10 @@ void FoldingBlocks::play_human(int level) {
 }
 
 int main(int argc, char *argv[]) {
-	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 5) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 6))
+	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 6) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 6))
 	{
 		cout << "Usage: ./game <option> <level>\n"
-			<< "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening), 5(greedy)...\n"
+			<< "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening), 5(greedy), 6(A*)\n"
 			<< "where level must be: an integer between 1 and 6\n\n";
 		return -1;
 	}
