@@ -421,7 +421,7 @@ Node* SearchTree::getNodeAt(int index) {
 }
 
 Node* SearchTree::getUnsearchedNodeAt(int index) {
-    auto l_front = nodes.begin();
+    auto l_front = nodes_unsearched.begin();
     advance(l_front, index);
     return &(*l_front);
 }
@@ -579,9 +579,7 @@ Node SearchTree::astar() {
     }
     Node* node = getUnsearchedNodeAt(index);
     nodes.push_back(*node);
-    auto it = nodes_unsearched.begin();
-    advance(it,index);
-    nodes_unsearched.erase(it);
+
 
     if (node->state.solved()) {
         cout << "Nodes visited: " << nodes.size() << "\n";
@@ -591,12 +589,14 @@ Node SearchTree::astar() {
     for (int i=0;i<node->moves.size();i++){
         Level new_level = node->state;
         new_level.make_move(node->moves[i]);
-        Node new_node(new_level, index,node->moves.front(), node->depth + 1);
+        Node new_node(new_level, nodes.size()-1,node->moves[i], node->depth + 1);
         new_node.value=new_level.getValue()+new_node.depth;
         nodes_unsearched.push_back(new_node);}
 
 
-
+    auto it = nodes_unsearched.begin();
+    advance(it,index);
+    nodes_unsearched.erase(it);
     return astar();
 }
 
