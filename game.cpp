@@ -384,8 +384,7 @@ public:
 	Node breadth_first();
 	Node depth_first(int max_depth);
 	Node iterative_deepening(int max_depth);
-	Node greedy();
-	int heuristic(Node* node);
+    Node greedy();
 };
 
 Node* SearchTree::getNodeAt(int index) {
@@ -396,7 +395,6 @@ Node* SearchTree::getNodeAt(int index) {
 
 Node SearchTree::breadth_first() {
 	Node* node = getNodeAt(index);
-	cout << "\nMin Group:" << heuristic(node) << "\n";
 	if (node->state.solved()) {
 		cout << "Nodes visited: " << index << "\n";
 		return *node;
@@ -449,65 +447,66 @@ Node SearchTree::iterative_deepening(int max_depth) {
 	return nodes.front();
 }
 
+void grouping(vector<vector<char> > &board, vector<vector<char> > &visited_board, int j, int k, int &partial_grp) {
+    if (j < board.size() && k < board[j].size() && board[j][k] == '0' && j>=0 && k>=0 && visited_board[j][k] == '0') {
+        partial_grp++;
+        visited_board[j][k] = '_';
+        grouping(board, visited_board, j, k - 1, partial_grp);
+        grouping(board, visited_board, j, k + 1, partial_grp);
+        grouping(board, visited_board, j - 1, k, partial_grp);
+        grouping(board, visited_board, j + 1, k, partial_grp);
+    }
+}
+Node SearchTree::greedy() {
+    Node* node = getNodeAt(index);
+    if (node->state.solved()) {
+        cout << "Nodes visited: " << index << "\n";
+        return *node;
+    }
+
+    int grp_size = INT16_MAX;
+    int partial_grp = 0;
+    int k_temp,j_temp;
+
+    vector<vector<char> > board = node->state.getBoard();
+    vector<vector<char> > visited_board = node->state.getBoard();
+    for (int j = 0; j < board.size(); j++){
+        for (int k= 0; k < board[j].size(); k++) {
+            if (board[j][k] == '0' && visited_board[j][k] == '0') {
+                /*		partial_grp++;
+                        visited_board[j][k] = '_';*/
+                grouping(board, visited_board, j, k, partial_grp);
+                cout << "P1:" << partial_grp<< "\n";
+                if (partial_grp < grp_size) {
+                    grp_size = partial_grp;
+                    partial_grp = 0;
+                    k_temp=k;
+                    j_temp=j;
+                }
+            }
+        }
+    }
+//TODO
+    vector<Move> moves = node->state.possible_moves();
+    for (int i = 0; i < moves.size(); i++) {
+        Level new_level = node->state;
+        new_level.make_move(moves[i]);
+        Node new_node(new_level, node, moves[i], node->depth + 1);
+        nodes.push_back(new_node);
+        index++;
+        if (index < nodes.size())
+            return depth_first(max_depth);
+        else
+            return nodes.front();
+    }
+    return nodes.front();
+    //TODO
+}
+
 //--------------------------------------------------------------------------------------------------------//
 //----------------------------------------  FoldingBlocks ------------------------------------------------//
 //--------------------------------------------------------------------------------------------------------//
 
-void grouping(vector<vector<char> > &board, vector<vector<char> > &visited_board, int j, int k, int &partial_grp) {
-	if (j < board.size() && k < board[j].size() && board[j][k] == '0' && visited_board[j][k] == '0') {
-		partial_grp++;
-		visited_board[j][k] = '_';
-		grouping(board, visited_board, j, k - 1, partial_grp);
-		grouping(board, visited_board, j, k + 1, partial_grp);
-		grouping(board, visited_board, j + 1, k - 1, partial_grp);
-		grouping(board, visited_board, j + 1, k + 1, partial_grp);
-		grouping(board, visited_board, j + 1, k, partial_grp);
-	}
-	//return partial_grp;
-}
-int SearchTree::heuristic(Node* node) {
-	int grp_size = INT16_MAX;
-	int partial_grp = 0;
-	int k1 = 1;
-
-		Node* actual = node;
-		if (actual->state.group_exists('0')){
-			vector<vector<char> > board = actual->state.getBoard();
-			vector<vector<char> > visited_board = actual->state.getBoard();
-			map<char, pair<int, string> > groups = actual->state.getGroups();
-			for (int j = 0; j < board.size(); j++)
-			{
-				
-				for (k1= 0; k1 < board[j].size(); k1++) {
-					if (board[j][k1] == '0' && visited_board[j][k1] == '0') {
-				/*		partial_grp++;
-						visited_board[j][k1] = '_';*/
-						grouping(board, visited_board, j, k1, partial_grp);
-
-						grouping(board, visited_board, j, k1 - 1, partial_grp);
-						grouping(board, visited_board, j, k1 + 1, partial_grp);
-						grouping(board, visited_board, j + 1, k1 - 1, partial_grp);
-						grouping(board, visited_board, j + 1, k1 + 1, partial_grp);
-						grouping(board, visited_board, j + 1, k1, partial_grp);
-						cout << "P1:" << partial_grp<< "\n";
-						if (partial_grp < grp_size) {
-							grp_size = partial_grp;
-							//partial_grp = 0;
-						}
-					}
-				}
-
-			}
-
-		}
-		if (partial_grp < grp_size) {
-			grp_size = partial_grp;
-			partial_grp = 0;
-		}
-		partial_grp = 0;
-	
-	return grp_size;
-}
 
 
 
@@ -561,6 +560,9 @@ vector<Move> FoldingBlocks::solve(int mode, Level level) {
 	case 4:
 		final = st.iterative_deepening(100);
 		break;
+    case 5:
+        final=st.greedy();
+        break;
 	}
 
 	vector<Move> moves;
@@ -655,11 +657,11 @@ void FoldingBlocks::play_human(int level) {
 }
 
 int main(int argc, char *argv[]) {
-	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 4) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 7))
+	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 5) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 6))
 	{
 		cout << "Usage: ./game <option> <level>\n"
-			<< "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening)...\n"
-			<< "where level must be: an integer between 1 and 7\n\n";
+			<< "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening), 5(greedy)...\n"
+			<< "where level must be: an integer between 1 and 6\n\n";
 		return -1;
 	}
 
