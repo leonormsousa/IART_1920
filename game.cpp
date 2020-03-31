@@ -70,7 +70,7 @@ public:
 	void make_move(Move move);
 	bool solved();
 	void display();
-	vector<vector<char> > getBoard() { return board; }
+	vector<vector<char> > getBoard() const { return board; }
 	map<char, pair<int, string> > getGroups() { return groups; }
 	vector<Move> possible_moves();
 	bool group_exists(char group) {
@@ -409,9 +409,8 @@ public:
     Node greedy();
     Node greedy_aux();
     Node astar();
-
-
     void startAstar();
+    bool alreadyVisited(Node node);
 };
 
 Node* SearchTree::getNodeAt(int index) {
@@ -430,6 +429,29 @@ void SearchTree::startAstar(){
     Node node = nodes.front();
     nodes.clear();
     nodes_unsearched.push_back(node);
+}
+
+bool SearchTree::alreadyVisited(Node node){
+    if (nodes.size()==0){
+        return false;
+    }
+    int value = node.state.getValue()-node.depth;
+    vector<vector<char>> board = node.state.getBoard();
+    for (auto iterator:nodes){
+        if(iterator.value-iterator.depth != value)
+            return false;
+        else{
+            vector<vector<char>> old_board = iterator.state.getBoard();
+            for (int j = 0; j < board.size(); j++) {//find smallest empty group
+                for (int k = 0; k < board[j].size(); k++) {
+                    if (board[j][k] != old_board[j][k]) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }
 
 Node SearchTree::breadth_first() {
@@ -571,6 +593,9 @@ Node SearchTree::greedy_aux() {
 }
 
 Node SearchTree::astar() {
+    if (nodes_unsearched.size()==0){
+        return nodes.front();
+    }
     int temp_value=INT16_MAX,index=0;
     for (int i=0;i<nodes_unsearched.size();i++){
         if (getUnsearchedNodeAt(i)->value < temp_value){
@@ -578,6 +603,12 @@ Node SearchTree::astar() {
             index=i;}
     }
     Node* node = getUnsearchedNodeAt(index);
+    if (alreadyVisited(*node)){
+        auto it = nodes_unsearched.begin();
+        advance(it,index);
+        nodes_unsearched.erase(it);
+        return astar();
+    }
     nodes.push_back(*node);
 
 
