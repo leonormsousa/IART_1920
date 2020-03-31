@@ -1,10 +1,11 @@
-#include <iostream> 
+#include <iostream>
 #include <limits>
-#include <vector> 
+#include <vector>
 #include <map>
 #include <string>
 #include <list>
 #include <algorithm>
+
 using namespace std;
 
 const int DOWN = 1;
@@ -111,7 +112,7 @@ Level::Level(int number, vector< vector<char> > board) {
 
 		}
 	}
-};
+}
 
 int Level::find_imax(char group) {
 	int imax = -1;
@@ -795,9 +796,9 @@ int main(int argc, char *argv[]) {
 	int mode = atoi(argv[1]);
 
 
-	FoldingBlocks foldingBlocks;
-	if (mode == 1)
-		foldingBlocks.play_human(level);
-	else
-		foldingBlocks.play_bot(mode, level);
+    FoldingBlocks foldingBlocks;
+    if (mode == 1)
+        foldingBlocks.play_human(level);
+    else
+        foldingBlocks.play_bot(mode, level);
 }
