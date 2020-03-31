@@ -674,12 +674,14 @@ FoldingBlocks::FoldingBlocks() {
 	vector< vector<char> > level4 = { {'A', '0', '_', '_'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'_', '_', 'B', '0'} };
 	vector< vector<char> > level5 = { {'A', '0', '_', '_'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'_', '_', 'B', '0'} };
 	vector< vector<char> > level6 = { {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', 'A'}, {'B', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'} };
-	levels.push_back(Level(1, level1));
+    vector< vector<char> > level7 = { {'_', '_', '0', '0'}, {'_', 'A', 'C', '0'}, {'0', 'B', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}, {'0', '0', '0', '0'}};
+    levels.push_back(Level(1, level1));
 	levels.push_back(Level(2, level2));
 	levels.push_back(Level(3, level3));
 	levels.push_back(Level(4, level4));
 	levels.push_back(Level(5, level5));
-	levels.push_back(Level(6, level6));
+    levels.push_back(Level(6, level6));
+    levels.push_back(Level(7, level7));
 }
 
 vector<Move> FoldingBlocks::solve(int mode, Level level) {
@@ -802,11 +804,11 @@ void FoldingBlocks::play_human(int level) {
 }
 
 int main(int argc, char *argv[]) {
-	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 6) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 6))
+	if ((argc != 3) || (atoi(argv[1]) <= 0) || (atoi(argv[1]) > 6) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 7))
 	{
 		cout << "Usage: ./game <option> <level>\n"
 			<< "where option must be: 1(human player), 2(breadth-first solver), 3(depth-first solver), 4(iterative deepening), 5(greedy), 6(A*)\n"
-			<< "where level must be: an integer between 1 and 6\n\n";
+			<< "where level must be: an integer between 1 and 7\n\n";
 		return -1;
 	}
 
