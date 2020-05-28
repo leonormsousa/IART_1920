@@ -1,0 +1,77 @@
+###################### COVID-19 Community Measures ######################
+#################### Supervised Learning - Regression ###################
+
+
+### Authors
+João Araújo, 201705577
+Jorge Pacheco, 201705754
+Leonor Sousa, 201705377
+
+### Context
+Artifial Inteligence curricular unit
+3rd year of the Integrated Master of Informatic and Computing Engineering
+
+### Responsible Professors
+Prof. Luís Paulo Gonçalves dos Reis
+Prof. Henrique Daniel de Avelar Lopes Cardoso
+
+
+### Abstract
+In this project you will find an artifial inteligence study over the COVID-19 Community Mobility Reports.
+We use supervised learning algorithms to do a regression of our dataset, in order to be able to analise the relation between the variation of certain community activities and the evolution of COVID-19.
+
+
+### Introduction
+
+In a world strongly affected by the COVID-19 outbreak and that is slowing recovering from it, it is crutial to analise the effect the suspension/maintenance of some measures might have on the evolution of the virus.
+Having this in mind, we will use artificial inteligence algorithms in order to predict how the activity variation in certain areas affect the number of cases and fatalities due to COVID-19.
+
+We will study 6 different areas of activity:
+1. Retail & recreation: places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters.
+2. Grocery & pharmacy: places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies.
+3. Parks: Mobility trends for places like national parks, public beaches, marinas, dog parks, plazas, and public gardens.
+4. Transit stations: places like public transport hubs such as subway, bus, and train stations.
+5. Workplaces: places of work.
+6. Residential: places of residence.
+
+The dataset we are using is provided by Kaggle (https://www.kaggle.com/gustavomodelli/covid-community-measures).
+
+
+### Description of the Problem/Datasets
+
+The dataset has collumns for the following information:
+1. Geographic Area where the data from the following collumns was obtained - Includes columns country_symbol and country.
+2. Date of the remaining data - Column date.
+3. Percent change from baseline for each of the activies - Includes columns grocery_and_pharmacy, parks, residential, retail_and_recreation, transit_stations, workplaces.
+4. COVID-19 data - Includes columns total_cases and fatalities.
+
+Note: We are doing a international study, so columns regarding geographic area will not be used.
+
+With the described dataset we intend to predict the total_cases and fatalaties regarding COVID-19, considering the variation of activity in the different types of studied places.
+
+!!!!!!!! insert table with data
+!!!!!!!! insert graphics with data
+
+
+### Approach
+
+In order to do our study, we will use 3 different types of regression/supervised learning algorithms: linear regression, decision trees and support vector machines.
+
+We will used the implementation of these algorithms that are available in the scikit library.
+
+For our X value will use the different collumns that represent the types of activity. In the final experiment, we will used all of these columns together as X. As for our y we will use the two different collumns that represent total_cases and fatalities. Once again in the experiment we will use both collumns together as y.
+
+
+### Experimental Evaluation
+
+Note: in the following code you will find the implementation of the approach and the results of the experiments.
+
+!!!!!!!!!!!! add code and graphs for everything every study
+
+
+### Conclusions
+
+
+### References
+
+
